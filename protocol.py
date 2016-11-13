@@ -1,8 +1,13 @@
 import pyrosetta 
 import rosetta 
 
+fmt = dict( zip( 'ANDRCQEGHILKMPFSTWYV', [
+    'ALA','ASN','ASP','ARG','CYS','GLN','GLU',
+    'GLY','HIS','ILE','LEU','LYS','MET','PRO','PHE','SER',
+    'THR','TRP','TYR','VAL' ] ) ) 
+
 # input 
-mutant_name = 'H178K' 
+mutant_name = 'H178W' 
 
 with open( 'input_files/flags' ) as fn:
     flags = fn.read().replace( '\n', ' ' )
@@ -22,8 +27,8 @@ add_cst.set_cst_action( rosetta.protocols.enzdes.CstAction.ADD_NEW )
 add_cst.apply( p ) 
 
 target = int( mutant_name[ 1:-1 ] )
-new_res = mutant_name[ -1 ] 
-mut = rosetta.protocols.simple_moves.MutateResidue( target, 'LYS' )
+new_res = fmt[ mutant_name[ -1 ] ] 
+mut = rosetta.protocols.simple_moves.MutateResidue( target, new_res )
 mut.apply( p ) 
 
 # protocol 
@@ -33,7 +38,7 @@ repack.set_scorefxn_minimize( scorefxn )
 #repack.set_min_bb( True )
 #repack.set_min_lig( True )  
 #repack.set_min_rb( True ) 
-#repack.set_min_sc( True )
+repack.set_min_sc( True )
 
 parsed = rosetta.protocols.simple_moves.GenericMonteCarloMover()
 parsed.set_mover( repack )
