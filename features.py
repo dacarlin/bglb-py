@@ -16,4 +16,6 @@ scorefxn = pyrosetta.create_score_function( 'beta_cst' )
 
 report = rosetta.protocols.features.ReportToDB()
 report.add_features_reporter( rosetta.protocols.features.JobDataFeatures() ) 
+#report.add_features_reporter( rosetta.protocols.features.StructureScoresFeatures( scorefxn ) ) 
 report.apply( p ) 
+
