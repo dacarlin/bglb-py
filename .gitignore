@@ -1,2 +1,4 @@
+features.db3
+*.swp
 logs/*
 output_files/*

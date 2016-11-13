@@ -1,6 +1,7 @@
 import pyrosetta 
 import rosetta 
 
+# input 
 mutant_name = 'H178K' 
 
 with open( 'input_files/flags' ) as fn:
@@ -25,14 +26,21 @@ new_res = mutant_name[ -1 ]
 mut = rosetta.protocols.simple_moves.MutateResidue( target, 'LYS' )
 mut.apply( p ) 
 
-#pack_task = pyrosetta.standard_packer_task( p )
-#pack_task.restrict_to_repacking()
-
+# protocol 
 repack = rosetta.protocols.enzdes.EnzRepackMinimize()
 repack.set_scorefxn_repack( scorefxn )
 repack.set_scorefxn_minimize( scorefxn )
-# set all the rest of the fucking options here 
+#repack.set_min_bb( True )
+#repack.set_min_lig( True )  
+#repack.set_min_rb( True ) 
+#repack.set_min_sc( True )
 
-repack.apply( p ) 
+parsed = rosetta.protocols.simple_moves.GenericMonteCarloMover()
+parsed.set_mover( repack )
+parsed.set_maxtrials( 10 )
+parsed.set_scorefxn( scorefxn )
+parsed.apply( p ) 
+
+# output PDB 
 p.dump_pdb( 'output_files/{}.pdb'.format( mutant_name) ) 
 
