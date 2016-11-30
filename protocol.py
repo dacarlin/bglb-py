@@ -6,12 +6,11 @@ fmt = dict( zip( 'ANDRCQEGHILKMPFSTWYV', [
     'GLY','HIS','ILE','LEU','LYS','MET','PRO','PHE','SER',
     'THR','TRP','TYR','VAL' ] ) ) 
 
-# input 
+# input files  
 mutant_name = 'H178W' 
 
 with open( 'input_files/flags' ) as fn:
     flags = fn.read().replace( '\n', ' ' )
-
 pyrosetta.init( ''.join( flags ) ) 
 
 ligand_params = pyrosetta.Vector1( [ 'input_files/pNPG.params' ] )
@@ -31,7 +30,17 @@ new_res = fmt[ mutant_name[ -1 ] ]
 mut = rosetta.protocols.simple_moves.MutateResidue( target, new_res )
 mut.apply( p ) 
 
-# protocol 
+# set up packing task 
+tf = rosetta.core.pack.task.TaskFactory()
+around = rosetta.protocols.toolbox.task_operations.DesignAroundOperation()
+around.include_residue( 446 ) #ligand 
+around.include_residue( target ) 
+around.repack_shell( 20 ) # let's grid search this  
+around.resnums_allow_design( False )
+tf.push_back( around ) 
+pt = tf.create_task_and_apply_taskoperations(p)
+
+# repack and minimize 
 repack = rosetta.protocols.enzdes.EnzRepackMinimize()
 repack.set_scorefxn_repack( scorefxn )
 repack.set_scorefxn_minimize( scorefxn )
@@ -39,7 +48,9 @@ repack.set_scorefxn_minimize( scorefxn )
 #repack.set_min_lig( True )  
 #repack.set_min_rb( True ) 
 repack.set_min_sc( True )
+repack.task_factory( tf ) # adds packer task 
 
+# monte carlo 
 parsed = rosetta.protocols.simple_moves.GenericMonteCarloMover()
 parsed.set_mover( repack )
 parsed.set_maxtrials( 10 )
